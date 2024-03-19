@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Anilist4Net;
 using Anilist4Net.Enums;
+using GraphQL.Client.Http;
 
 Console.WriteLine("Checking for Manga.txt");
 
@@ -26,20 +27,23 @@ List<string> recheck = new List<string>();
 
 foreach (var line in lines)
 {
-    
+    Page results;
     Console.WriteLine("Scanning for: " + line);
     tryagain:
-    var results = await client.GetMediaBySearch(line, MediaTypes.MANGA, 1, 10);
-    
-    if (results == null || results.Media == null)
+    try
+    {
+        results = await client.GetMediaBySearch(line, MediaTypes.MANGA, 1, 10);
+    }
+    catch
     {
         Console.WriteLine("Rate-limited. Waiting 1 Minute.");
         Thread.Sleep(61000);
         goto tryagain;
     }
-    if (results.Media.Length < 1)
+    
+    if (results == null || results.Media.Length < 1)
     {
-        Console.WriteLine("Couldnt find " + line + " on Anilist.");
+        Console.WriteLine("Couldn't find " + line + " on Anilist.");
         Console.WriteLine("Adding Manga to NotFound.txt");
         if (!File.Exists("NotFound.txt"))
         {
@@ -78,17 +82,20 @@ foreach (var line in lines)
         recheck.Add(line);
     }
 
-    Thread.Sleep(1000); //So we don't get rate-limited
+    Thread.Sleep(1500); //So we don't get rate-limited
 }
 
 Process process = new Process();
 foreach (var check in recheck)
 {
     Console.WriteLine("Please review all Manga that were not 100% Identifiable.");
+    Page results;
     tryagain:
-    var results = await client.GetMediaBySearch(check, MediaTypes.MANGA, 1, 10);
-    
-    if (results == null)
+    try
+    {
+        results = await client.GetMediaBySearch(check, MediaTypes.MANGA, 1, 10);
+    }
+    catch
     {
         Console.WriteLine("Rate-limited. Waiting 1 Minute.");
         Thread.Sleep(61000);
@@ -133,7 +140,7 @@ foreach (var check in recheck)
         }
         File.AppendAllText("NotFound.txt",check + Environment.NewLine);
     }
-    Thread.Sleep(1000); //So we don't get rate-limited
+    Thread.Sleep(1500); //So we don't get rate-limited
 }
 
 

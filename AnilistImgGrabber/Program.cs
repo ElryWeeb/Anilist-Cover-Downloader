@@ -43,12 +43,13 @@ foreach (var line in lines)
 
     var result = results.Data.First();
     
+    string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
+    string saveFile = RemoveSpecialCharacters(line).ToLower();
+    string fileType = imageUrl.Split('.').Last();
+    
     if (line == result.Title.EnglishTitle || line == result.Title.RomajiTitle)
     {
         //Download
-        string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
-        string saveFile = RemoveSpecialCharacters(line).ToLower();
-        string fileType = imageUrl.Split('.').Last();
         using (var webClient = new HttpClient())
         {
             using (var s = webClient.GetStreamAsync(imageUrl))
@@ -63,6 +64,7 @@ foreach (var line in lines)
     else
     {
         Console.WriteLine($"We couldn't confirm the result for {line}");
+        System.Diagnostics.Process.Start(imageUrl);
         Console.WriteLine("Please check your Browser if this is result is correct.");
         Console.WriteLine("Press Y if it is, any other if not.");
         var answer = Console.ReadKey();
@@ -70,9 +72,6 @@ foreach (var line in lines)
         if (answer.Key == ConsoleKey.Y)
         {
             //Download
-            string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
-            string saveFile = RemoveSpecialCharacters(line).ToLower();
-            string fileType = imageUrl.Split('.').Last();
             using (var webClient = new HttpClient())
             {
                 using (var s = webClient.GetStreamAsync(imageUrl))

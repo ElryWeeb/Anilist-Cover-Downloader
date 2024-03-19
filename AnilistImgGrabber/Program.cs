@@ -30,13 +30,13 @@ foreach (var line in lines)
     tryagain:
     var results = await client.GetMediaBySearch(line, MediaTypes.MANGA, 1, 10);
     
-    if (results == null)
+    if (results == null || results.Media == null)
     {
         Console.WriteLine("Rate-limited. Waiting 1 Minute.");
         Thread.Sleep(61000);
         goto tryagain;
     }
-    if (results.PageInfo.Total < 1)
+    if (results.Media.Length < 1)
     {
         Console.WriteLine("Couldnt find " + line + " on Anilist.");
         Console.WriteLine("Adding Manga to NotFound.txt");
@@ -45,6 +45,7 @@ foreach (var line in lines)
             File.Create("NotFound.txt").Close();
         }
         File.AppendAllText("NotFound.txt",line + Environment.NewLine);
+        continue;
     }
 
     var result = results.Media.First();
@@ -52,6 +53,8 @@ foreach (var line in lines)
     string imageUrl = result.CoverImageExtraLarge;
     string saveFile = line.Replace("'", "");
     saveFile = saveFile.Replace(".", "-");
+    saveFile = saveFile.Replace("!", "");
+    saveFile = saveFile.Replace("?", "");
     string fileType = imageUrl.Split('.').Last();
     
     if (line == result.EnglishTitle || line == result.RomajiTitle)
@@ -99,6 +102,8 @@ foreach (var check in recheck)
     string imageUrl = result.CoverImageExtraLarge;
     string saveFile = check.Replace("'", "");
     saveFile = saveFile.Replace(".", "-");
+    saveFile = saveFile.Replace("!", "");
+    saveFile = saveFile.Replace("?", "");
     string fileType = imageUrl.Split('.').Last();
     process.StartInfo.UseShellExecute = true;
     process.StartInfo.FileName = "chrome";
@@ -133,6 +138,7 @@ foreach (var check in recheck)
         }
         File.AppendAllText("NotFound.txt",check + Environment.NewLine);
     }
+    Thread.Sleep(1000); //So we don't get rate-limited
 }
 
 

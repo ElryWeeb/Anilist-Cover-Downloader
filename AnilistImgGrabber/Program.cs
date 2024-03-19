@@ -1,8 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
+
+using System.Diagnostics;
 using AniListNet; // Contains base classes for interacting with the API
 using AniListNet.Parameters; // Contains classes for mutation and filtering
 using AniListNet.Objects; // Contains model classes for handling data
-using System.Text.RegularExpressions;
 
 Console.WriteLine("Checking for Manga.txt");
 
@@ -19,13 +20,9 @@ if (!Directory.Exists("Output"))
     Directory.CreateDirectory("Output");
 }
 
-string RemoveSpecialCharacters(string str)
-{
-    return Regex.Replace(str, "[^a-zA-Z0-9]+", String.Empty, RegexOptions.Compiled);
-}
-
 var lines = File.ReadLines("Manga.txt");
 var client = new AniClient();
+Process process = new Process();
 foreach (var line in lines)
 {
     Console.WriteLine("Scanning for: " + line);
@@ -34,17 +31,14 @@ foreach (var line in lines)
         
         Query = line, // The term to search for
         Type = MediaType.Manga, // Filters search results to anime only
-        Sort = MediaSort.Popularity, // Sorts them by popularity
-        Format = new Dictionary<MediaFormat, bool>
-        {
-            { MediaFormat.Manga, true } // Set to only search for Manga 
-        },
+        Sort = MediaSort.Popularity // Sorts them by popularity
     });
 
     var result = results.Data.First();
     
     string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
-    string saveFile = RemoveSpecialCharacters(line).ToLower();
+    string saveFile = line.Replace("'", "");
+    saveFile = saveFile.Replace(".", "-");
     string fileType = imageUrl.Split('.').Last();
     
     if (line == result.Title.EnglishTitle || line == result.Title.RomajiTitle)
@@ -64,10 +58,13 @@ foreach (var line in lines)
     else
     {
         Console.WriteLine($"We couldn't confirm the result for {line}");
-        System.Diagnostics.Process.Start(imageUrl);
+        process.StartInfo.UseShellExecute = true;
+        process.StartInfo.FileName = "chrome";
+        process.StartInfo.Arguments = @result.Url.AbsoluteUri; 
+        process.Start();
         Console.WriteLine("Please check your Browser if this is result is correct.");
         Console.WriteLine("Press Y if it is, any other if not.");
-        var answer = Console.ReadKey();
+        var answer = Console.ReadKey(true);
 
         if (answer.Key == ConsoleKey.Y)
         {
@@ -88,11 +85,9 @@ foreach (var line in lines)
             Console.WriteLine("Adding Manga to notfound.txt");
             if (!File.Exists("notfound.txt"))
             {
-                File.Create("notfound.txt");
+                File.Create("notfound.txt").Close();
             }
-
-            File.AppendText(line);
-
+            File.AppendAllText("notfound.txt",line);
         }
     }
     Thread.Sleep(100); //So we dont get rate-limited

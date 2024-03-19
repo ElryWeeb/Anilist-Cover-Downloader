@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Anilist4Net;
 using Anilist4Net.Enums;
 
@@ -51,10 +52,7 @@ foreach (var line in lines)
     var result = results.Media.First();
 
     string imageUrl = result.CoverImageExtraLarge;
-    string saveFile = line.Replace("'", "");
-    saveFile = saveFile.Replace(".", "-");
-    saveFile = saveFile.Replace("!", "");
-    saveFile = saveFile.Replace("?", "");
+    string saveFile = Regex.Replace(line, @"[^a-zA-Z0-9\s]", string.Empty);
     string fileType = imageUrl.Split('.').Last();
     
     if (line == result.EnglishTitle || line == result.RomajiTitle)
@@ -100,10 +98,7 @@ foreach (var check in recheck)
     var result = results.Media.First();
 
     string imageUrl = result.CoverImageExtraLarge;
-    string saveFile = check.Replace("'", "");
-    saveFile = saveFile.Replace(".", "-");
-    saveFile = saveFile.Replace("!", "");
-    saveFile = saveFile.Replace("?", "");
+    string saveFile = Regex.Replace(check, @"[^a-zA-Z0-9\s]", string.Empty);
     string fileType = imageUrl.Split('.').Last();
     process.StartInfo.UseShellExecute = true;
     process.StartInfo.FileName = "chrome";

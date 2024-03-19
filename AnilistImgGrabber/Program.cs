@@ -90,7 +90,7 @@ foreach (var line in lines)
             File.AppendAllText("notfound.txt",line);
         }
     }
-    Thread.Sleep(100); //So we dont get rate-limited
+    Thread.Sleep(750); //So we dont get rate-limited
 }
 
 Console.WriteLine("Done, press any Key to exit.");

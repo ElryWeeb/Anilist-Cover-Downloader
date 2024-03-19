@@ -4,29 +4,19 @@ using AniListNet.Parameters; // Contains classes for mutation and filtering
 using AniListNet.Objects; // Contains model classes for handling data
 using System.Text.RegularExpressions;
 
-Console.WriteLine("Enter Path to file to scan");
+Console.WriteLine("Checking for Manga.txt");
 
-string fileName = Console.ReadLine();
 
-if (string.IsNullOrEmpty(fileName))
+if (!File.Exists("Manga.txt"))
 {
-    Environment.Exit(0);
-}
-if (!File.Exists(fileName))
-{
+    Console.WriteLine("Could not find file in " + AppDomain.CurrentDomain.BaseDirectory);
+    Thread.Sleep(500);
     Environment.Exit(0);
 }
 
-Console.WriteLine("Enter Path to where to save images.");
-string folderName = Console.ReadLine();
-
-if (string.IsNullOrEmpty(folderName))
+if (!Directory.Exists("Output"))
 {
-    Environment.Exit(0);
-}
-if (!Directory.Exists(folderName))
-{
-    Directory.CreateDirectory(folderName);
+    Directory.CreateDirectory("Output");
 }
 
 string RemoveSpecialCharacters(string str)
@@ -34,7 +24,7 @@ string RemoveSpecialCharacters(string str)
     return Regex.Replace(str, "[^a-zA-Z0-9]+", String.Empty, RegexOptions.Compiled);
 }
 
-var lines = File.ReadLines(fileName);
+var lines = File.ReadLines("Manga.txt");
 var client = new AniClient();
 foreach (var line in lines)
 {
@@ -67,7 +57,7 @@ foreach (var line in lines)
                 {
                     using (var s = webClient.GetStreamAsync(imageUrl))
                     {
-                        using (var fs = new FileStream(folderName + "\\" + saveFile + "." + fileType, FileMode.OpenOrCreate))
+                        using (var fs = new FileStream("Output\\" + saveFile + "." + fileType, FileMode.OpenOrCreate))
                         {
                             s.Result.CopyTo(fs);
                         }
@@ -77,9 +67,9 @@ foreach (var line in lines)
             else
             {
                 Console.WriteLine("Adding Manga to notfound.txt");
-                if (!File.Exists(folderName + "notfound.txt"))
+                if (!File.Exists("notfound.txt"))
                 {
-                    File.Create(folderName + "notfound.txt");
+                    File.Create("notfound.txt");
                 }
 
                 File.AppendText(line);

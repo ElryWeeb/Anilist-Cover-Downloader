@@ -31,17 +31,43 @@ foreach (var line in lines)
     Console.WriteLine("Scanning for: " + line);
     var results = await client.SearchMediaAsync(new SearchMediaFilter
     {
+        
         Query = line, // The term to search for
         Type = MediaType.Manga, // Filters search results to anime only
         Sort = MediaSort.Popularity, // Sorts them by popularity
         Format = new Dictionary<MediaFormat, bool>
         {
             { MediaFormat.Manga, true } // Set to only search for Manga 
-        }
+        },
     });
+
+    var result = results.Data.First();
     
-    foreach (var result in results.Data){
-        if (line == result.Title.EnglishTitle || line == result.Title.RomajiTitle)
+    if (line == result.Title.EnglishTitle || line == result.Title.RomajiTitle)
+    {
+        //Download
+        string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
+        string saveFile = RemoveSpecialCharacters(line).ToLower();
+        string fileType = imageUrl.Split('.').Last();
+        using (var webClient = new HttpClient())
+        {
+            using (var s = webClient.GetStreamAsync(imageUrl))
+            {
+                using (var fs = new FileStream("Output\\" + saveFile + "." + fileType, FileMode.OpenOrCreate))
+                {
+                    s.Result.CopyTo(fs);
+                }
+            }
+        }
+    }
+    else
+    {
+        Console.WriteLine($"We couldn't confirm the result for {line}");
+        Console.WriteLine("Please check your Browser if this is result is correct.");
+        Console.WriteLine("Press Y if it is, any other if not.");
+        var answer = Console.ReadKey();
+
+        if (answer.Key == ConsoleKey.Y)
         {
             //Download
             string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
@@ -51,7 +77,7 @@ foreach (var line in lines)
             {
                 using (var s = webClient.GetStreamAsync(imageUrl))
                 {
-                    using (var fs = new FileStream(saveFile + "." + fileType, FileMode.OpenOrCreate))
+                    using (var fs = new FileStream("Output\\" + saveFile + "." + fileType, FileMode.OpenOrCreate))
                     {
                         s.Result.CopyTo(fs);
                     }
@@ -60,39 +86,14 @@ foreach (var line in lines)
         }
         else
         {
-            Console.WriteLine($"We couldn't confirm the result for {line}");
-            Console.WriteLine(result.Url);
-            Console.WriteLine("Please check if this is correct. Y/N");
-            var answer = Console.ReadKey();
-
-            if (answer.Key == ConsoleKey.Y)
+            Console.WriteLine("Adding Manga to notfound.txt");
+            if (!File.Exists("notfound.txt"))
             {
-                //Download
-                string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
-                string saveFile = RemoveSpecialCharacters(line).ToLower();
-                string fileType = imageUrl.Split('.').Last();
-                using (var webClient = new HttpClient())
-                {
-                    using (var s = webClient.GetStreamAsync(imageUrl))
-                    {
-                        using (var fs = new FileStream("Output\\" + saveFile + "." + fileType, FileMode.OpenOrCreate))
-                        {
-                            s.Result.CopyTo(fs);
-                        }
-                    }
-                }
+                File.Create("notfound.txt");
             }
-            else
-            {
-                Console.WriteLine("Adding Manga to notfound.txt");
-                if (!File.Exists("notfound.txt"))
-                {
-                    File.Create("notfound.txt");
-                }
 
-                File.AppendText(line);
+            File.AppendText(line);
 
-            }
         }
     }
     Thread.Sleep(100); //So we dont get rate-limited

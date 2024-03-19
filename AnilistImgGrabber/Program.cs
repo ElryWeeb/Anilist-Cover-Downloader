@@ -50,6 +50,7 @@ foreach (var line in lines)
             File.Create("NotFound.txt").Close();
         }
         File.AppendAllText("NotFound.txt",line + Environment.NewLine);
+        Thread.Sleep(2000); //So we don't get rate-limited
         continue;
     }
 
@@ -82,7 +83,7 @@ foreach (var line in lines)
         recheck.Add(line);
     }
 
-    Thread.Sleep(1500); //So we don't get rate-limited
+    Thread.Sleep(2000); //So we don't get rate-limited
 }
 
 Process process = new Process();
@@ -141,7 +142,7 @@ foreach (var check in recheck)
         }
         File.AppendAllText("NotFound.txt",check + Environment.NewLine);
     }
-    Thread.Sleep(1500); //So we don't get rate-limited
+    Thread.Sleep(2000); //So we don't get rate-limited
 }
 
 

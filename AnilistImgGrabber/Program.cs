@@ -28,6 +28,7 @@ var lines = File.ReadLines("Manga.txt");
 var client = new AniClient();
 foreach (var line in lines)
 {
+    Console.WriteLine("Scanning for: " + line);
     var results = await client.SearchMediaAsync(new SearchMediaFilter
     {
         Query = line, // The term to search for
@@ -38,9 +39,26 @@ foreach (var line in lines)
             { MediaFormat.Manga, true } // Set to only search for Manga 
         }
     });
+    
     foreach (var result in results.Data){
-        Console.WriteLine("Scanning for: " + line);
-        if (line != result.Title.EnglishTitle || line != result.Title.NativeTitle || line != result.Title.RomajiTitle)
+        if (line == result.Title.EnglishTitle || line == result.Title.RomajiTitle)
+        {
+            //Download
+            string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
+            string saveFile = RemoveSpecialCharacters(line).ToLower();
+            string fileType = imageUrl.Split('.').Last();
+            using (var webClient = new HttpClient())
+            {
+                using (var s = webClient.GetStreamAsync(imageUrl))
+                {
+                    using (var fs = new FileStream(saveFile + "." + fileType, FileMode.OpenOrCreate))
+                    {
+                        s.Result.CopyTo(fs);
+                    }
+                }
+            }
+        }
+        else
         {
             Console.WriteLine($"We couldn't confirm the result for {line}");
             Console.WriteLine(result.Url);
@@ -74,24 +92,6 @@ foreach (var line in lines)
 
                 File.AppendText(line);
 
-            }
-            
-        }
-        else
-        {
-            //Download
-            string imageUrl = result.Cover.ExtraLargeImageUrl.ToString();
-            string saveFile = RemoveSpecialCharacters(line).ToLower();
-            string fileType = imageUrl.Split('.').Last();
-            using (var webClient = new HttpClient())
-            {
-                using (var s = webClient.GetStreamAsync(imageUrl))
-                {
-                    using (var fs = new FileStream(saveFile + "." + fileType, FileMode.OpenOrCreate))
-                    {
-                        s.Result.CopyTo(fs);
-                    }
-                }
             }
         }
     }

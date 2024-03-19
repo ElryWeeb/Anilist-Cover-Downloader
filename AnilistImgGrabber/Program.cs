@@ -86,9 +86,10 @@ foreach (var line in lines)
 }
 
 Process process = new Process();
+Console.WriteLine("Please review all Manga that were not 100% Identifiable.");
+Console.WriteLine("Please check if the Chrome-Tab that opens matches the Manga-name.");
 foreach (var check in recheck)
 {
-    Console.WriteLine("Please review all Manga that were not 100% Identifiable.");
     Page results;
     tryagain:
     try
@@ -111,7 +112,7 @@ foreach (var check in recheck)
     process.StartInfo.FileName = "chrome";
     process.StartInfo.Arguments = @result.SiteUrl; 
     process.Start();
-    Console.WriteLine("Please check your Browser if this is result is correct.");
+    Console.WriteLine(check);
     Console.WriteLine("Press Y if it is, any other if not.");
     var answer = Console.ReadKey(true);
 
